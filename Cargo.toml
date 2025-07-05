@@ -1,7 +1,17 @@
 [package]
 name = "eink-image"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+description = "A Rust utility for converting images to formats optimized for eink displays"
+license = "MIT OR Apache-2.0"
+authors = ["Harper Reed <harper@nata2.org>"]
+repository = "https://github.com/harperreed/eink-image"
+homepage = "https://github.com/harperreed/eink-image"
+documentation = "https://docs.rs/eink-image"
+readme = "README.md"
+keywords = ["eink", "image", "dithering", "embedded", "epaper"]
+categories = ["graphics", "multimedia::images", "embedded"]
+rust-version = "1.70"
 
 [dependencies]
 image = "0.24"
