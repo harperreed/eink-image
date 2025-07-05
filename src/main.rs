@@ -3,10 +3,11 @@
 
 use clap::{Arg, Command};
 use image::{DynamicImage, ImageBuffer, Luma};
+use indicatif::{ProgressBar, ProgressStyle};
 
 fn main() {
     let matches = Command::new("eink-image")
-        .version("0.1.0")
+        .version("0.2.0")
         .about("Convert images for optimal eink display rendering")
         .arg(
             Arg::new("input")
@@ -87,6 +88,17 @@ fn main() {
         .parse()
         .unwrap_or(128);
 
+    let pb = ProgressBar::new(100);
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template(
+                "{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos:>7}/{len:7} {msg}",
+            )
+            .unwrap()
+            .progress_chars("#>-"),
+    );
+    pb.set_message("Processing image...");
+
     match process_image(
         input_path,
         output_path,
@@ -95,12 +107,20 @@ fn main() {
         diffusion_amount,
         gamma,
         threshold,
+        &pb,
     ) {
-        Ok(_) => println!("Image processed successfully: {}", output_path),
-        Err(e) => eprintln!("Error processing image: {}", e),
+        Ok(_) => {
+            pb.finish_with_message("Image processed successfully!");
+            println!("Output saved to: {}", output_path);
+        }
+        Err(e) => {
+            pb.finish_with_message("Processing failed");
+            eprintln!("Error processing image: {}", e);
+        }
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn process_image(
     input_path: &str,
     output_path: &str,
@@ -109,19 +129,40 @@ fn process_image(
     diffusion_amount: f32,
     gamma: f32,
     threshold: u8,
+    pb: &ProgressBar,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    pb.set_message("Loading image...");
     let img = image::open(input_path)?;
+    pb.set_position(20);
 
+    pb.set_message("Converting to grayscale...");
     let grayscale_img = convert_to_grayscale(img);
+    pb.set_position(40);
+
+    pb.set_message("Applying gamma correction...");
     let gamma_corrected_img = apply_gamma_correction(grayscale_img, gamma);
+    pb.set_position(60);
+
+    pb.set_message("Enhancing contrast...");
     let enhanced_img = enhance_contrast(gamma_corrected_img, contrast_level);
+    pb.set_position(70);
+
+    pb.set_message(if enable_dither {
+        "Applying Floyd-Steinberg dithering..."
+    } else {
+        "Applying threshold..."
+    });
     let final_img = if enable_dither {
         apply_floyd_steinberg_dithering(enhanced_img, diffusion_amount, threshold)
     } else {
         apply_simple_threshold(enhanced_img, threshold)
     };
+    pb.set_position(90);
 
+    pb.set_message("Saving output...");
     final_img.save(output_path)?;
+    pb.set_position(100);
+
     Ok(())
 }
 
