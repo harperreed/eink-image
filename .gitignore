@@ -1,0 +1,27 @@
+# Rust build artifacts
+/target
+**/*.rs.bk
+Cargo.lock
+
+# Configuration and data files that may contain sensitive information
+config.yaml
+data/photos/index.yaml
+content/photostream/
+
+# Runtime logs and debug files
+*.log
+album_data_debug.txt
+
+# User-specific IDE files
+.idea/
+.vscode/
+.DS_Store
+
+# Environment & configuration files
+.env
+*.local.json
+**/.claude/settings.local.json
+prompt_plan.md
+output.txt
+
+custom/data.yaml
